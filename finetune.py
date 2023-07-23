@@ -280,7 +280,7 @@ def train(
         learning_rate=learning_rate,
         # uncomment this line if your gpu support bf16
         bf16=True,
-        logging_steps=500,
+        logging_steps=200,
         evaluation_strategy="steps" if val_set_size > 0 else "no",
         save_strategy="steps",
         eval_steps=5000 if val_set_size > 0 else None,
