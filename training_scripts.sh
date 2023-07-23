@@ -5,11 +5,11 @@
 python finetune.py  \
 --base_model 'decapoda-research/llama-7b-hf' \
 --output_dir './lora-alpaca' \
---batch_size 4 \
---micro_batch_size 4 \
+--batch_size 6 \
+--micro_batch_size 6 \
 --cutoff_len 1024 \
 --num_epochs 2 \
 --learning_rate 2e-4 \
 --val_set_size 2000 \
---wandb_run_name 'run_42' \
+--wandb_run_name 'run_43' \
 --group_by_length
