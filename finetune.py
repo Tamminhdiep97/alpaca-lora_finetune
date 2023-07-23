@@ -112,7 +112,7 @@ def train(
 
     model = LlamaForCausalLM.from_pretrained(
         base_model,
-        load_in_8bit=False,
+        load_in_8bit=True,
         torch_dtype=torch.float16,
         llm_int8_skip_modules=FULL_FINETUNE_MODULES,
         device_map=device_map,
