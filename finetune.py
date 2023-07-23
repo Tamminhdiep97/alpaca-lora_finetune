@@ -166,7 +166,7 @@ def train(
             ]  # could be sped up, probably
         return tokenized_full_prompt
 
-    model = prepare_model_for_int8_training(model).to(torch.bfloat16)
+    # model = prepare_model_for_int8_training(model).to(torch.bfloat16)
 
     config = LoraConfig(
         r=lora_r,
@@ -178,7 +178,7 @@ def train(
         modules_to_save=FULL_FINETUNE_MODULES,
     )
     # You can use bfloat16 if your gpu support it
-    model = get_peft_model(model, config)  # .to(torch.bfloat16)
+    model = get_peft_model(model, config).to(torch.bfloat16)
 
     # if data_path.endswith(".json"):  # todo: support jsonl
     #     data = load_dataset("json", data_files=data_path)
