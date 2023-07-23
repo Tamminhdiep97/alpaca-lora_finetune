@@ -342,9 +342,11 @@ no_input_Instruction = '''{instruction_string}
 {output_string}
 '''
 
-instruction_EN = 'You are an Assistant, your job is to answer the question base on information in you are provided with.'
-instruction_JP = 'あなたはアシスタントです。あなたの仕事は、提供された情報に基づいて質問に答えることです。'
+instruction_input_EN = 'You are an Assistant, below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.'
+instruction_input_JP = 'あなたはアシスタントです。以下に、タスクを説明する指示と、さらなるコンテキストを提供する入力を組み合わせます。 リクエストを適切に完了するレスポンスを作成します。'
 
+instruction_no_input_EN = 'You are an Assistant, below is an instruction that describes a task. Write a response that appropriately completes the request.'
+instruction_no_input_JP = 'あなたはアシスタントです。以下はタスクを説明する指示です。 リクエストを適切に完了するレスポンスを作成します。'
 
 def generate_prompt(data_point):
 #     prompt = '''
@@ -365,9 +367,12 @@ def generate_prompt(data_point):
 
     # Remove first line since we actually don't need it.
     # sorry about the formatting disaster gotta move fast
-    instruction_string = instruction_EN
+    instruction_input_string = instruction_input_EN
+    instruction_no_input_string = instruction_no_input_EN
     if data_point["lang"] == 'ja':
-        instruction_string = instruction_JP
+        instruction_input_string = instruction_input_JP
+        instruction_no_input_string = instruction_no_input_JP
+
     # if data_point["input"]:
     #     PROMPT = input_Instruction.format(
     #         instruction_string=instruction_string,
@@ -385,7 +390,7 @@ def generate_prompt(data_point):
     #     )
     #     return PROMPT
     if data_point["input"]:
-        return f"""{instruction_string}
+        return f"""{instruction_input_string}
         ### Instruction:
 {data_point["instruction"]}
 
@@ -395,7 +400,7 @@ def generate_prompt(data_point):
 ### Response:
 {data_point["output"]}"""
     else:
-        return f"""{instruction_string}
+        return f"""{instruction_no_input_string}
 ### Instruction:
 {data_point["instruction"]}
 

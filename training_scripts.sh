@@ -11,5 +11,5 @@ python finetune.py  \
 --num_epochs 2 \
 --learning_rate 2e-4 \
 --val_set_size 2000 \
---wandb_run_name 'run_45' \
+--wandb_run_name 'run_46' \
 --group_by_length
