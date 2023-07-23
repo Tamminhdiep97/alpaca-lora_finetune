@@ -5,7 +5,7 @@
 python finetune.py  \
 --base_model 'decapoda-research/llama-7b-hf' \
 --output_dir './lora-alpaca' \
---batch_size 2 \
+--batch_size 4 \
 --micro_batch_size 2 \
 --cutoff_len 1024 \
 --num_epochs 2 \
