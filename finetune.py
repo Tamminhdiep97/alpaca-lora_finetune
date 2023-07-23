@@ -7,7 +7,6 @@ import torch
 import torch.nn as nn
 import bitsandbytes as bnb
 from datasets import load_dataset, concatenate_datasets
-from langdetect import detect
 
 import transformers
 from transformers import LlamaForCausalLM, LlamaTokenizer
@@ -29,13 +28,13 @@ def train(
     batch_size: int = 128,
     micro_batch_size: int = 1,
     num_epochs: int = 3,
-    learning_rate: float = 3e-4,
+    learning_rate: float = 2e-4,
     cutoff_len: int = 1024,
     val_set_size: int = 2000,
     # lora hyperparams
-    lora_r: int = 8,
+    lora_r: int = 16,
     lora_alpha: int = 16,
-    lora_dropout: float = 0.05,
+    lora_dropout: float = 0.1,
     lora_target_modules: List[str] = [
         "q_proj",
         "v_proj",
@@ -113,8 +112,8 @@ def train(
 
     model = LlamaForCausalLM.from_pretrained(
         base_model,
-        load_in_8bit=False,
-        torch_dtype=torch.float32,
+        load_in_8bit=True,
+        torch_dtype=torch.float16,
         llm_int8_skip_modules=FULL_FINETUNE_MODULES,
         device_map=device_map,
         cache_dir='../huggingface'
@@ -167,7 +166,7 @@ def train(
             ]  # could be sped up, probably
         return tokenized_full_prompt
 
-    # model = prepare_model_for_int8_training(model)
+    model = prepare_model_for_int8_training(model)
 
     config = LoraConfig(
         r=lora_r,
@@ -179,7 +178,7 @@ def train(
         modules_to_save=FULL_FINETUNE_MODULES,
     )
     # You can use bfloat16 if your gpu support it
-    model = get_peft_model(model, config).to(torch.float32)
+    model = get_peft_model(model, config).to(torch.bfloat16)
 
     # if data_path.endswith(".json"):  # todo: support jsonl
     #     data = load_dataset("json", data_files=data_path)
@@ -280,7 +279,7 @@ def train(
         num_train_epochs=num_epochs,
         learning_rate=learning_rate,
         # uncomment this line if your gpu support bf16
-        # bf16=True,
+        bf16=True,
         logging_steps=20,
         evaluation_strategy="steps" if val_set_size > 0 else "no",
         save_strategy="steps",
