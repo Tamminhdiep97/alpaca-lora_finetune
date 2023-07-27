@@ -11,7 +11,7 @@ assert (
 ), "LLaMA is now in HuggingFace's main branch.\nPlease reinstall it: pip uninstall transformers && pip install git+https://github.com/huggingface/transformers.git"
 from transformers import LlamaTokenizer, LlamaForCausalLM
 
-BASE_MODEL = None
+BASE_MODEL = 'decapoda-research/llama-7b-hf'
 assert (
     BASE_MODEL
 ), "Please specify a BASE_MODEL in the script, e.g. 'decapoda-research/llama-7b-hf'"
@@ -36,7 +36,7 @@ head_weight_old = base_model.lm_head.weight.clone()
 
 lora_model = PeftModel.from_pretrained(
     base_model,
-    "./guanaco",
+    "./lora-alpaca/checkpoint-205000/adapter_model.bin,
     device_map={"": "cpu"},
     torch_dtype=torch.float16,
 )
