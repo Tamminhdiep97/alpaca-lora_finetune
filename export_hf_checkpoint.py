@@ -36,7 +36,7 @@ head_weight_old = base_model.lm_head.weight.clone()
 
 lora_model = PeftModel.from_pretrained(
     base_model,
-    "./lora-alpaca/checkpoint-205000/adapter_model.bin",
+    "./lora-alpaca/checkpoint-205000/",
     device_map={"": "cpu"},
     torch_dtype=torch.float16,
 )
