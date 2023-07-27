@@ -45,6 +45,7 @@ if device == "cuda":
     )
 
 model = model.merge_and_unload()
+print("Model merged")
 model.save_pretrained("/merge/ja_en_alpaca_lora_7b")
 
 
