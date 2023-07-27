@@ -81,7 +81,7 @@ def main(
     model = model.merge_and_unload()
 
     print("****** start saving process ******")
-    model.save_pretrained(save_path)
+    model.save_pretrained(save_path, max_shard_size="3GB")
 
 
 if __name__ == "__main__":
