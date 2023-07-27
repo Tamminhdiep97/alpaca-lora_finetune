@@ -10,7 +10,7 @@ from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
 tokenizer = LlamaTokenizer.from_pretrained("decapoda-research/llama-7b-hf")
 
 BASE_MODEL = "decapoda-research/llama-7b-hf"
-LORA_WEIGHTS = "./lora-alpaca/checkpoint-205000/",
+LORA_WEIGHTS = "./lora-alpaca/checkpoint-205000/"
 
 force_cpu = False
 
