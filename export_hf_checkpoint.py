@@ -5,13 +5,14 @@ import torch
 from peft import PeftModel, LoraConfig
 
 import transformers
+from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
 
 assert (
     "LlamaTokenizer" in transformers._import_structure["models.llama"]
 ), "LLaMA is now in HuggingFace's main branch.\nPlease reinstall it: pip uninstall transformers && pip install git+https://github.com/huggingface/transformers.git"
 from transformers import LlamaTokenizer, LlamaForCausalLM
 
-BASE_MODEL = None
+BASE_MODEL = 'decapoda-research/llama-7b-hf'
 assert (
     BASE_MODEL
 ), "Please specify a BASE_MODEL in the script, e.g. 'decapoda-research/llama-7b-hf'"
@@ -36,7 +37,7 @@ head_weight_old = base_model.lm_head.weight.clone()
 
 lora_model = PeftModel.from_pretrained(
     base_model,
-    "./guanaco",
+    "./lora-alpaca/checkpoint-205000/",
     device_map={"": "cpu"},
     torch_dtype=torch.float16,
 )
@@ -55,11 +56,16 @@ lora_model.base_model.model.lm_head.merge_weights = True
 
 lora_model.train(False)
 
+first_weight_ = base_model.model.layers[0].self_attn.q_proj.weight
+final_weight_ = base_model.model.layers[-1].self_attn.q_proj.weight
+embed_weight_ = base_model.model.embed_tokens.weight
+head_weight_ = base_model.lm_head.weight
+
 # did we do anything?
-first_changed = not torch.allclose(first_weight_old, first_weight)
-final_changed = not torch.allclose(final_weight_old, final_weight)
-embed_changed = not torch.allclose(embed_weight_old, embed_weight)
-head_changed = not torch.allclose(head_weight_old, head_weight)
+first_changed = not torch.allclose(first_weight_old, first_weight_)
+final_changed = not torch.allclose(final_weight_old, final_weight_)
+embed_changed = not torch.allclose(embed_weight_old, embed_weight_)
+head_changed = not torch.allclose(head_weight_old, head_weight_)
 print(
     f'first_changed: {first_changed}\n'
     f'final_changed: {final_changed}\n'
