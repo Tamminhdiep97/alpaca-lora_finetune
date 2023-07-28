@@ -7,7 +7,6 @@ import torch
 import torch.nn as nn
 import bitsandbytes as bnb
 from datasets import load_dataset, concatenate_datasets
-from langdetect import detect
 
 import transformers
 from transformers import LlamaForCausalLM, LlamaTokenizer
@@ -29,13 +28,13 @@ def train(
     batch_size: int = 128,
     micro_batch_size: int = 1,
     num_epochs: int = 3,
-    learning_rate: float = 3e-4,
+    learning_rate: float = 2e-4,
     cutoff_len: int = 1024,
     val_set_size: int = 2000,
     # lora hyperparams
-    lora_r: int = 8,
+    lora_r: int = 16,
     lora_alpha: int = 16,
-    lora_dropout: float = 0.05,
+    lora_dropout: float = 0.1,
     lora_target_modules: List[str] = [
         "q_proj",
         "v_proj",
@@ -114,7 +113,7 @@ def train(
     model = LlamaForCausalLM.from_pretrained(
         base_model,
         load_in_8bit=False,
-        torch_dtype=torch.float32,
+        torch_dtype=torch.float16,
         llm_int8_skip_modules=FULL_FINETUNE_MODULES,
         device_map=device_map,
         cache_dir='../huggingface'
@@ -179,7 +178,7 @@ def train(
         modules_to_save=FULL_FINETUNE_MODULES,
     )
     # You can use bfloat16 if your gpu support it
-    model = get_peft_model(model, config).to(torch.float32)
+    model = get_peft_model(model, config).to(torch.bfloat16)
 
     # if data_path.endswith(".json"):  # todo: support jsonl
     #     data = load_dataset("json", data_files=data_path)
@@ -280,12 +279,12 @@ def train(
         num_train_epochs=num_epochs,
         learning_rate=learning_rate,
         # uncomment this line if your gpu support bf16
-        # bf16=True,
-        logging_steps=20,
+        bf16=True,
+        logging_steps=200,
         evaluation_strategy="steps" if val_set_size > 0 else "no",
         save_strategy="steps",
-        eval_steps=2000 if val_set_size > 0 else None,
-        save_steps=2000,
+        eval_steps=5000 if val_set_size > 0 else None,
+        save_steps=5000,
         output_dir=output_dir,
         # save_total_limit=5,
         load_best_model_at_end=True if val_set_size > 0 else False,
@@ -343,9 +342,11 @@ no_input_Instruction = '''{instruction_string}
 {output_string}
 '''
 
-instruction_EN = 'You are an Assistant, your job is to answer the question base on information in you are provided with.'
-instruction_JP = 'あなたはアシスタントです。あなたの仕事は、提供された情報に基づいて質問に答えることです。'
+instruction_input_EN = 'You are an Assistant, below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.'
+instruction_input_JP = 'あなたはアシスタントです。以下に、タスクを説明する指示と、さらなるコンテキストを提供する入力を組み合わせます。 リクエストを適切に完了するレスポンスを作成します。'
 
+instruction_no_input_EN = 'You are an Assistant, below is an instruction that describes a task. Write a response that appropriately completes the request.'
+instruction_no_input_JP = 'あなたはアシスタントです。以下はタスクを説明する指示です。 リクエストを適切に完了するレスポンスを作成します。'
 
 def generate_prompt(data_point):
 #     prompt = '''
@@ -366,9 +367,12 @@ def generate_prompt(data_point):
 
     # Remove first line since we actually don't need it.
     # sorry about the formatting disaster gotta move fast
-    instruction_string = instruction_EN
+    instruction_input_string = instruction_input_EN
+    instruction_no_input_string = instruction_no_input_EN
     if data_point["lang"] == 'ja':
-        instruction_string = instruction_JP
+        instruction_input_string = instruction_input_JP
+        instruction_no_input_string = instruction_no_input_JP
+
     # if data_point["input"]:
     #     PROMPT = input_Instruction.format(
     #         instruction_string=instruction_string,
@@ -386,7 +390,7 @@ def generate_prompt(data_point):
     #     )
     #     return PROMPT
     if data_point["input"]:
-        return f"""{instruction_string}
+        return f"""{instruction_input_string}
         ### Instruction:
 {data_point["instruction"]}
 
@@ -396,7 +400,7 @@ def generate_prompt(data_point):
 ### Response:
 {data_point["output"]}"""
     else:
-        return f"""{instruction_string}
+        return f"""{instruction_no_input_string}
 ### Instruction:
 {data_point["instruction"]}
 
